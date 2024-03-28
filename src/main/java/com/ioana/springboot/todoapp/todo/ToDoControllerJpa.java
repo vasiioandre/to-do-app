@@ -15,21 +15,21 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 
 import jakarta.validation.Valid;
 
-//@Controller
+@Controller
 @SessionAttributes("name")
-public class ToDoController {
+public class ToDoControllerJpa {
 	
-	private ToDoService toDoService;
+	private ToDoRepository toDoRepository;
 	
-	public ToDoController(ToDoService toDoService) {
+	public ToDoControllerJpa(ToDoRepository toDoRepository) {
 		super();
-		this.toDoService = toDoService;
+		this.toDoRepository = toDoRepository;
 	}
 
 	@RequestMapping("list-todos")
 	public String listAllToDos(ModelMap model) {
 		String username = getLoggedInUsername(model);
-		List<ToDo> todos = toDoService.findByUsername(username);
+		List<ToDo> todos = toDoRepository.findByUsername(username);
 		model.addAttribute("todos", todos);
 		
 		return "listToDos";
@@ -52,22 +52,22 @@ public class ToDoController {
 		}
 		
 		String username = getLoggedInUsername(model);
-		toDoService.addToDo(username, toDo.getDescription(), 
-				toDo.getTargetDate(), false);
+		toDo.setUsername(username);
+		toDoRepository.save(toDo);
 		
 		return "redirect:list-todos";
 	}
 	
 	@RequestMapping("delete-todo")
 	public String deleteToDo(@RequestParam int id) {
-		toDoService.deleteById(id);
+		toDoRepository.deleteById(id);
 		
 		return "redirect:list-todos";
 	}
 	
 	@RequestMapping(value="update-todo", method=RequestMethod.GET)
 	public String showUpdateToDoPage(@RequestParam int id, ModelMap model) {
-		ToDo toDo = toDoService.findById(id);
+		ToDo toDo = toDoRepository.findById(id).get();
 		model.addAttribute("toDo", toDo);
 		
 		return "toDo";
@@ -82,7 +82,7 @@ public class ToDoController {
 		
 		String username = getLoggedInUsername(model);
 		toDo.setUsername(username);
-		toDoService.updateToDo(toDo);
+		toDoRepository.save(toDo);
 		
 		return "redirect:list-todos";
 	}
